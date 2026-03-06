@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.sql import func
 from ..database import Base
 
@@ -7,8 +7,7 @@ class ARCard(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     card_code = Column(String(100), unique=True, nullable=False)
+    label = Column(String(200), nullable=False, default="AR Card")
     points = Column(Integer, nullable=False)
-    ar_model_path = Column(String(255))
-    is_scanned = Column(Boolean, default=False)
-    scanned_by = Column(Integer, ForeignKey("users.id"))
-    scanned_at = Column(DateTime(timezone=True))
+    qr_image_path = Column(String(255), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

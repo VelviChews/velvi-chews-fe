@@ -22,6 +22,7 @@ passlib==1.7.4
 
 # Image / AR Processing
 Pillow
+qrcode[pil]
 
 # Development & Debugging
 httpx
