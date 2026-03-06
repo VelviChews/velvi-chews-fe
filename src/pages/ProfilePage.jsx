@@ -6,7 +6,12 @@ import {
   FaCoins,
   FaPencilAlt,
 } from "react-icons/fa";
-import { IoLogOutOutline, IoAddCircleOutline, IoScan } from "react-icons/io5";
+import {
+  IoLogOutOutline,
+  IoAddCircleOutline,
+  IoScan,
+  IoQrCode,
+} from "react-icons/io5";
 import ProfileWave from "../assets/profilewave.png";
 import DefaultAvatar from "../assets/default-avatar.png";
 import Navbar from "../components/Navbar";
@@ -14,64 +19,62 @@ import Navbar from "../components/Navbar";
 const ProfilePage = () => {
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_API_URL;
+  const token = localStorage.getItem("token");
   const fileInputRef = useRef(null);
 
   const [user, setUser] = useState(null);
+  const [scanCount, setScanCount] = useState(0);
   const [imagePreview, setImagePreview] = useState(DefaultAvatar);
   const [newName, setNewName] = useState("");
-  const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   // === Ambil profil user dari backend ===
   useEffect(() => {
-    const fetchProfile = async () => {
-      setLoading(true);
+    const fetchUser = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          navigate("/login");
-          return;
-        }
-
         const res = await fetch(`${API_URL}/users/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
-
-        if (!res.ok) throw new Error("Gagal mengambil profil");
-
-        const data = await res.json();
-        setUser(data);
-        setNewName(data.name);
-        if (data.profile_picture) {
-          setImagePreview(data.profile_picture);
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data);
+          setNewName(data.name || "");
+          if (data.profile_picture) setImagePreview(data.profile_picture);
+        } else {
+          navigate("/login");
         }
-
       } catch (err) {
         console.error(err);
-      } finally {
-        setLoading(false);
       }
     };
 
-    fetchProfile();
-  }, [API_URL, navigate]);
+    const fetchScanCount = async () => {
+      try {
+        const res = await fetch(`${API_URL}/scan/history`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setScanCount(data.length);
+        }
+      } catch { /* */ }
+    };
+
+    fetchUser();
+    fetchScanCount();
+  }, []);
 
   // === Upload foto atau update nama ===
   const handleUpdateProfile = async (file) => {
     setUploading(true);
     try {
-      const token = localStorage.getItem("token");
       const formData = new FormData();
       if (newName) formData.append("name", newName);
       if (file) formData.append("file", file);
 
       const res = await fetch(`${API_URL}/users/me`, {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
 
@@ -84,7 +87,6 @@ const ProfilePage = () => {
       }
     } catch (err) {
       console.error(err);
-      alert(err.message);
     } finally {
       setUploading(false);
     }
@@ -98,33 +100,35 @@ const ProfilePage = () => {
     }
   };
 
-  const handleEditClick = () => {
-    fileInputRef.current.click();
-  };
+  const handleEditClick = () => fileInputRef.current.click();
 
-  if (loading) return <p className="text-center mt-20">Loading profile...</p>;
-  if (!user) return null;
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
 
   const MenuItem = ({ icon, text, onClick, isLogout = false }) => (
     <button
       onClick={onClick}
-      className={`flex w-full items-center gap-4 py-4 text-left text-sm font-semibold ${
-        !isLogout ? "border-b" : ""
-      } ${isLogout ? "text-red-500" : "text-gray-700"}`}
+      className={`flex w-full items-center gap-4 py-4 text-left text-sm font-semibold ${!isLogout ? "border-b" : ""
+        } ${isLogout ? "text-red-500" : "text-gray-700"}`}
     >
       {icon}
       <span>{text}</span>
     </button>
   );
 
+  if (!user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#FF89AC] border-t-transparent" />
+      </div>
+    );
+  }
+
   return (
-    // FIX: Tambahkan overflow-x-hidden agar halaman tidak bisa digeser ke samping
-    // FIX: Gunakan w-full (bukan w-screen) untuk lebar yang aman
     <div className="relative min-h-screen w-full bg-gray-50 pb-24 overflow-x-hidden font-sans">
       <Navbar />
-      
-      {/* Background Image */}
-      {/* Pastikan width dan height tercover dengan baik */}
       <img
         src={ProfileWave}
         alt="Profile background wave"
@@ -164,13 +168,12 @@ const ProfilePage = () => {
           <p className="text-sm font-light text-white/90">{user.email}</p>
         </header>
 
+        {/* Points & Scanned stats */}
         <div className="mt-6 flex w-full max-w-xs items-center justify-around rounded-2xl bg-white p-4 shadow-lg">
           <div className="flex w-1/2 items-center justify-center gap-3">
             <FaCoins className="h-7 w-7 flex-shrink-0 text-[#B4E2F2]" />
             <div className="text-left">
-              <p className="text-4xl font-bold text-[#B4E2F2]">
-                {user.total_points}
-              </p>
+              <p className="text-4xl font-bold text-[#B4E2F2]">{user.total_points}</p>
               <p className="text-sm text-gray-400 -mt-1">Point</p>
             </div>
           </div>
@@ -178,14 +181,13 @@ const ProfilePage = () => {
           <div className="flex w-1/2 items-center justify-center gap-3">
             <IoScan className="h-7 w-7 flex-shrink-0 text-[#B4E2F2]" />
             <div className="text-left">
-              <p className="text-4xl font-bold text-[#B4E2F2]">
-                {user.scanned || 0}
-              </p>
+              <p className="text-4xl font-bold text-[#B4E2F2]">{scanCount}</p>
               <p className="text-sm text-gray-400 -mt-1">Scanned</p>
             </div>
           </div>
         </div>
 
+        {/* Menu items */}
         <div className="mt-8 w-full max-w-xs rounded-2xl bg-white p-4 pt-0 shadow-lg">
           <MenuItem
             icon={<FaUserCircle size={20} />}
@@ -197,23 +199,28 @@ const ProfilePage = () => {
             text="Frequently Ask Question"
           />
           {user.role === "admin" && (
-            <MenuItem
-              icon={<IoAddCircleOutline size={22} />}
-              text="Add Item Redeem"
-              onClick={() => navigate("/profile/add-item")}
-            />
+            <>
+              <MenuItem
+                icon={<IoAddCircleOutline size={22} />}
+                text="Add Item Redeem"
+                onClick={() => navigate("/profile/add-item")}
+              />
+              <MenuItem
+                icon={<IoQrCode size={22} />}
+                text="Manage QR Cards"
+                onClick={() => navigate("/admin/qr")}
+              />
+            </>
           )}
           <MenuItem
             icon={<IoLogOutOutline size={22} />}
             text="Log Out"
             isLogout
-            onClick={() => {
-              localStorage.removeItem("token");
-              navigate("/login");
-            }}
+            onClick={handleLogout}
           />
         </div>
       </div>
+
       {uploading && (
         <p className="fixed bottom-4 text-center w-full text-sm text-gray-500">
           Uploading...

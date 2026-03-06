@@ -48,14 +48,8 @@ const LoginPage = () => {
       <div className="z-10 mt-16 flex w-full max-w-xs flex-col items-center p-4 sm:max-w-sm md:mt-20">
         
         <div className="flex items-center justify-center gap-4 mb-6">
-          <img
-            src={BubblixLogo}
-            alt="Bubblix Logo"
-            className="h-18 w-auto object-contain"
-          />
-
           <img src={Logo} alt="Velvi Chews Logo" className="w-28" />
-          
+
         </div>
 
         <form onSubmit={handleLogin} className="w-full rounded-2xl bg-white p-6 shadow-xl">

@@ -14,6 +14,8 @@ import AccountInfoPage from "./pages/AccountInfoPage";
 import AddItemPage from "./pages/AddItemPage";
 import ResetPasswordPage from "./components/ResetPasswordPage";
 import ForgetPasswordPage from "./components/ForgetPasswordPage";
+import ScanPage from "./pages/ScanPage";
+import AdminQRPage from "./pages/AdminQRPage";
 
 function App() {
   const [showSplash, setShowSplash] = useState(false);
@@ -57,7 +59,8 @@ function App() {
           <Route path="/profile/add-item" element={<AddItemPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/forget-password" element={<ForgetPasswordPage/>} />
-          
+          <Route path="/scan" element={<ScanPage />} />
+          <Route path="/admin/qr" element={<AdminQRPage />} />
         </Routes>
       </div>
     </Router>

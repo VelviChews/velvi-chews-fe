@@ -1,14 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-// Import icons from the library
 import { FaHome, FaCrown, FaHistory, FaUser } from 'react-icons/fa';
 import { IoScan } from "react-icons/io5";
 
 const Navbar = () => {
-  // This function remains the same
   const getLinkClass = ({ isActive }) =>
-    `flex flex-col items-center gap-1 transition-colors duration-200 ${
-      isActive ? 'text-[#FF89AC]' : 'text-gray-300'
+    `flex flex-col items-center gap-1 transition-colors duration-200 ${isActive ? 'text-[#FF89AC]' : 'text-gray-300'
     }`;
 
   return (
@@ -18,37 +15,38 @@ const Navbar = () => {
 
       {/* Navigation Links */}
       <div className="relative flex h-full items-center justify-around">
-        
+
         {/* Left Links */}
         <NavLink to="/home" className={getLinkClass}>
-          <FaHome className="h-6 w-6" /> {/* Changed Icon */}
+          <FaHome className="h-6 w-6" />
           <span className="text-xs font-medium">Home</span>
         </NavLink>
         <NavLink to="/membership" className={getLinkClass}>
-          <FaCrown className="h-6 w-6" /> {/* Changed Icon */}
+          <FaCrown className="h-6 w-6" />
           <span className="text-xs font-medium">Membership</span>
         </NavLink>
 
         {/* Spacer for the center button */}
-        <div className="w-16"></div> 
+        <div className="w-16"></div>
 
         {/* Right Links */}
         <NavLink to="/history" className={getLinkClass}>
-          <FaHistory className="h-6 w-6" /> {/* Changed Icon */}
+          <FaHistory className="h-6 w-6" />
           <span className="text-xs font-medium">History</span>
         </NavLink>
         <NavLink to="/profile" className={getLinkClass}>
-          <FaUser className="h-6 w-6" /> {/* Changed Icon */}
+          <FaUser className="h-6 w-6" />
           <span className="text-xs font-medium">Profile</span>
         </NavLink>
-
       </div>
 
-      {/* Center Scan Button */}
+      {/* Center Scan Button — navigates to /scan */}
       <div className="absolute -top-2 left-1/2 -translate-x-1/2">
-        <button className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-white bg-[#FF89AC] text-white shadow-md">
-          <IoScan className="h-8 w-8" /> {/* Changed Icon */}
-        </button>
+        <NavLink to="/scan">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-white bg-[#FF89AC] text-white shadow-md active:scale-95 transition-transform">
+            <IoScan className="h-8 w-8" />
+          </div>
+        </NavLink>
       </div>
     </nav>
   );
