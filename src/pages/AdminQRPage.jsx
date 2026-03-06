@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { IoChevronBack, IoQrCode, IoTrash } from "react-icons/io5";
 import { FaPlus, FaDownload } from "react-icons/fa";
 
-const API_BASE = "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_URL;
 
 export default function AdminQRPage() {
     const navigate = useNavigate();

@@ -4,7 +4,7 @@ import { IoChevronBack } from "react-icons/io5";
 import { FaStar } from "react-icons/fa";
 import "@google/model-viewer";
 
-const API_BASE = "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_URL;
 
 // ─── State machine ────────────────────────────────────────────────
 // "scanning"   → camera is active, waiting for QR
