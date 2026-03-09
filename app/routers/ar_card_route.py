@@ -44,3 +44,13 @@ def get_qr_image(
         from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="QR image not found on disk")
     return FileResponse(filepath, media_type="image/png", filename=f"{card_code}.png")
+
+
+@router.delete("/{card_code}")
+def delete_card(
+    card_code: str,
+    db: Session = Depends(get_db),
+    _: None = Depends(admin_required),
+):
+    """Admin only: Delete an AR card."""
+    return card_service.delete_card(db, card_code)

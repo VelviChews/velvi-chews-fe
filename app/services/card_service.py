@@ -51,3 +51,20 @@ def get_card_by_code(db: Session, card_code: str) -> ARCard:
     if not card:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="QR Card tidak ditemukan")
     return card
+
+
+def delete_card(db: Session, card_code: str):
+    card = get_card_by_code(db, card_code)
+
+    # Delete the image file if it exists
+    if card.qr_image_path:
+        filepath = card.qr_image_path.lstrip("/")
+        if os.path.exists(filepath):
+            try:
+                os.remove(filepath)
+            except Exception as e:
+                print(f"Failed to delete QR image {filepath}: {e}")
+
+    db.delete(card)
+    db.commit()
+    return {"message": "Card deleted successfully"}
