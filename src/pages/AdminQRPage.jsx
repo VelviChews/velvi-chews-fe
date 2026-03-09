@@ -15,6 +15,8 @@ export default function AdminQRPage() {
     const [creating, setCreating] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    const [cardToDelete, setCardToDelete] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // ── Fetch all cards ──────────────────────────────────────────────
     const fetchCards = async () => {
@@ -82,6 +84,33 @@ export default function AdminQRPage() {
             a.click();
             URL.revokeObjectURL(url);
         } catch {/* */ }
+    };
+
+    // ── Delete QR ──────────────────────────────────────────────────
+    const handleDeleteCard = (card) => {
+        setCardToDelete(card);
+    };
+
+    const confirmDelete = async () => {
+        if (!cardToDelete) return;
+        setIsDeleting(true);
+        try {
+            const res = await fetch(`${API_BASE}/cards/${cardToDelete.card_code}`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (res.ok) {
+                setSuccess("QR Card berhasil dihapus!");
+                setCardToDelete(null);
+                fetchCards();
+            } else {
+                const d = await res.json();
+                setError(d.detail || "Gagal menghapus card.");
+            }
+        } catch {
+            setError("Gagal terhubung ke server.");
+        }
+        setIsDeleting(false);
     };
 
     return (
@@ -177,19 +206,62 @@ export default function AdminQRPage() {
                                     <p className="mt-0.5 truncate text-[10px] text-gray-400">{card.card_code}</p>
                                 </div>
 
-                                {/* Download button */}
-                                <button
-                                    onClick={() => handleDownloadQR(card)}
-                                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#FF89AC]/10 text-[#FF89AC] active:scale-95 transition-transform"
-                                    title="Download QR"
-                                >
-                                    <FaDownload size={15} />
-                                </button>
+                                {/* Buttons */}
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => handleDownloadQR(card)}
+                                        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#FF89AC]/10 text-[#FF89AC] active:scale-95 transition-transform"
+                                        title="Download QR"
+                                    >
+                                        <FaDownload size={15} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteCard(card)}
+                                        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-500 active:scale-95 transition-transform"
+                                        title="Hapus QR"
+                                    >
+                                        <IoTrash size={15} />
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>
                 )}
             </div>
+            {/* ── Delete Confirmation Modal ────────────────────────────────────── */}
+            {cardToDelete && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm transition-opacity">
+                    <div className="w-full max-w-sm overflow-hidden rounded-3xl bg-white/90 p-6 text-center shadow-2xl backdrop-blur-md border border-white/20">
+                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-red-500">
+                            <IoTrash size={32} />
+                        </div>
+                        <h3 className="mb-2 text-xl font-bold text-gray-800">Hapus QR Card?</h3>
+                        <p className="mb-6 text-sm text-gray-500">
+                            Yakin ingin menghapus QR Card <span className="font-semibold text-gray-700">"{cardToDelete.label}"</span>?
+                            Tindakan ini tidak dapat dibatalkan.
+                        </p>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setCardToDelete(null)}
+                                disabled={isDeleting}
+                                className="flex-1 rounded-xl bg-gray-100 py-3 text-sm font-semibold text-gray-700 active:scale-95 transition-transform"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                disabled={isDeleting}
+                                className="flex-1 rounded-xl bg-red-500 py-3 text-sm font-semibold text-white shadow-lg shadow-red-500/30 active:scale-95 transition-transform disabled:opacity-60 flex justify-center items-center"
+                            >
+                                {isDeleting ? (
+                                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                                ) : "Hapus"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
