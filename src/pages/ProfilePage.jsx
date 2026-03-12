@@ -57,7 +57,9 @@ const ProfilePage = () => {
           const data = await res.json();
           setScanCount(data.length);
         }
-      } catch { /* */ }
+      } catch {
+        /* */
+      }
     };
 
     fetchUser();
@@ -110,8 +112,9 @@ const ProfilePage = () => {
   const MenuItem = ({ icon, text, onClick, isLogout = false }) => (
     <button
       onClick={onClick}
-      className={`flex w-full items-center gap-4 py-4 text-left text-sm font-semibold ${!isLogout ? "border-b" : ""
-        } ${isLogout ? "text-red-500" : "text-gray-700"}`}
+      className={`flex w-full items-center gap-4 py-4 text-left text-sm font-semibold ${
+        !isLogout ? "border-b" : ""
+      } ${isLogout ? "text-red-500" : "text-gray-700"}`}
     >
       {icon}
       <span>{text}</span>
@@ -173,7 +176,9 @@ const ProfilePage = () => {
           <div className="flex w-1/2 items-center justify-center gap-3">
             <FaCoins className="h-7 w-7 flex-shrink-0 text-[#B4E2F2]" />
             <div className="text-left">
-              <p className="text-4xl font-bold text-[#B4E2F2]">{user.total_points}</p>
+              <p className="text-4xl font-bold text-[#B4E2F2]">
+                {user.total_points}
+              </p>
               <p className="text-sm text-gray-400 -mt-1">Point</p>
             </div>
           </div>
@@ -202,8 +207,8 @@ const ProfilePage = () => {
             <>
               <MenuItem
                 icon={<IoAddCircleOutline size={22} />}
-                text="Add Item Redeem"
-                onClick={() => navigate("/profile/add-item")}
+                text="List Item Redeem"
+                onClick={() => navigate("/profile/redeem-items")}
               />
               <MenuItem
                 icon={<IoQrCode size={22} />}

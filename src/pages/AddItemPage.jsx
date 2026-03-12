@@ -74,7 +74,7 @@ const AddItemPage = () => {
       const data = await res.json();
       console.log("✅ Item berhasil ditambahkan:", data);
       alert("Item berhasil ditambahkan!");
-      navigate("/profile");
+      navigate("/profile/redeem-items");
     } catch (err) {
       console.error("Error saat upload:", err);
       alert("Terjadi kesalahan jaringan.");
