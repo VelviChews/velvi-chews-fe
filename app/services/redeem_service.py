@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urlparse
 from sqlalchemy.orm import Session
 from fastapi import UploadFile, HTTPException, status
 from app.models.redeem_item import RedeemItem
@@ -6,6 +7,7 @@ from app.models.redeem_history import RedeemHistory
 from app.models.user import User  # pastikan kamu punya model User dengan field "points"
 from app.utils.config import settings
 from sqlalchemy.orm import joinedload
+from sqlalchemy.exc import SQLAlchemyError
 
 UPLOAD_DIR = "uploads/redeem_items"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -143,12 +145,20 @@ class RedeemItemService:
         if not item:
             raise HTTPException(status_code=404, detail="Item tidak ditemukan")
 
-        # Hapus file gambar jika ada
-        if item.image_url:
-            image_path = item.image_url.lstrip("/")  # remove leading slash
-            if os.path.exists(image_path):
-                os.remove(image_path)
+        try:
+            # Hapus history terkait lebih dulu agar tidak memicu NOT NULL constraint.
+            db.query(RedeemHistory).filter(RedeemHistory.item_id == item_id).delete(synchronize_session=False)
 
-        db.delete(item)
-        db.commit()
-        return {"message": f"Item '{item.name}' berhasil dihapus"}
+            # Hapus file gambar jika ada
+            if item.image_url:
+                parsed_path = urlparse(item.image_url).path or item.image_url
+                image_path = parsed_path.lstrip("/")
+                if os.path.exists(image_path):
+                    os.remove(image_path)
+
+            db.delete(item)
+            db.commit()
+            return {"message": f"Item '{item.name}' berhasil dihapus"}
+        except SQLAlchemyError:
+            db.rollback()
+            raise HTTPException(status_code=500, detail="Gagal menghapus item")

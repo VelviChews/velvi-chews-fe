@@ -28,6 +28,15 @@ def get_all_redeem_items(db: Session = Depends(get_db)):
     return RedeemItemService.get_all_items(db)
 
 
+# ========== GET ALL ITEMS (Admin) ==========
+@router.get("/admin", response_model=list[RedeemItemResponse])
+def get_all_redeem_items_admin(
+    db: Session = Depends(get_db),
+    current_user = Depends(admin_required)
+):
+    return RedeemItemService.get_all_items(db)
+
+
 # ========== GET ITEM DETAIL ==========
 @router.get("/{item_id}", response_model=RedeemItemResponse)
 def get_redeem_item_detail(item_id: int, db: Session = Depends(get_db)):
