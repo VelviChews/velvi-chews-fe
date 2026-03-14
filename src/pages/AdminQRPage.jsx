@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { IoChevronBack, IoQrCode, IoTrash } from "react-icons/io5";
+import { IoChevronBack, IoQrCode, IoTrash, IoInformationCircleOutline } from "react-icons/io5";
 import { FaPlus, FaDownload } from "react-icons/fa";
 
 const API_BASE = import.meta.env.VITE_API_URL;
@@ -208,6 +208,13 @@ export default function AdminQRPage() {
 
                                 {/* Buttons */}
                                 <div className="flex gap-2">
+                                    <button
+                                        onClick={() => navigate(`/admin/qr/${card.card_code}`)}
+                                        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-500 active:scale-95 transition-transform"
+                                        title="Detail QR"
+                                    >
+                                        <IoInformationCircleOutline size={18} />
+                                    </button>
                                     <button
                                         onClick={() => handleDownloadQR(card)}
                                         className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#FF89AC]/10 text-[#FF89AC] active:scale-95 transition-transform"

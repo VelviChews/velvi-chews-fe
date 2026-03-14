@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { IoChevronBack, IoAddCircle, IoTrash } from "react-icons/io5";
+import { IoChevronBack, IoAddCircle, IoTrash, IoInformationCircleOutline } from "react-icons/io5";
 import DinoGummy from "../assets/dino-gummy.png";
 
 const API_BASE = import.meta.env.VITE_API_URL;
@@ -179,18 +179,27 @@ export default function AdminRedeemItemsPage() {
                   </p>
                 </div>
 
-                <button
-                  onClick={() => handleDeleteItem(item.id, item.name)}
-                  disabled={deletingId === item.id}
-                  className="flex h-9 w-9 flex-shrink-0 items-center justify-center self-start rounded-xl bg-red-100 text-red-500 active:scale-95 transition-transform disabled:opacity-60"
-                  title="Hapus item"
-                >
-                  {deletingId === item.id ? (
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-500 border-t-transparent" />
-                  ) : (
-                    <IoTrash size={16} />
-                  )}
-                </button>
+                <div className="flex flex-col gap-2 self-start">
+                  <button
+                    onClick={() => navigate(`/admin/redeem-items/${item.id}`)}
+                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-500 active:scale-95 transition-transform"
+                    title="Detail item"
+                  >
+                    <IoInformationCircleOutline size={18} />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteItem(item.id, item.name)}
+                    disabled={deletingId === item.id}
+                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-500 active:scale-95 transition-transform disabled:opacity-60"
+                    title="Hapus item"
+                  >
+                    {deletingId === item.id ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-500 border-t-transparent" />
+                    ) : (
+                      <IoTrash size={16} />
+                    )}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
