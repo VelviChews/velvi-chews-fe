@@ -139,6 +139,17 @@ class RedeemItemService:
         )
 
     @staticmethod
+    def get_item_history_admin(db: Session, item_id: int):
+        """Ambil riwayat redeem untuk sebuah item dengan info user (Admin)"""
+        return (
+            db.query(RedeemHistory)
+            .options(joinedload(RedeemHistory.user))
+            .filter(RedeemHistory.item_id == item_id)
+            .order_by(RedeemHistory.created_at.desc())
+            .all()
+        )
+
+    @staticmethod
     def delete_item_by_id(db: Session, item_id: int):
         """Hapus item redeem berdasarkan ID"""
         item = db.query(RedeemItem).filter(RedeemItem.id == item_id).first()

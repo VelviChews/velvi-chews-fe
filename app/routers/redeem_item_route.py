@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.schemas.redeem_schema import RedeemItemResponse
+from app.schemas.redeem_schema import RedeemItemResponse, AdminRedeemHistoryResponse
 from app.services.redeem_service import RedeemItemService
 from app.utils.role_check import admin_required
 
@@ -41,6 +41,16 @@ def get_all_redeem_items_admin(
 @router.get("/{item_id}", response_model=RedeemItemResponse)
 def get_redeem_item_detail(item_id: int, db: Session = Depends(get_db)):
     return RedeemItemService.get_item_by_id(db, item_id)
+
+
+# ========== GET ITEM HISTORY (Admin) ==========
+@router.get("/{item_id}/history", response_model=list[AdminRedeemHistoryResponse])
+def get_item_history_admin_api(
+    item_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(admin_required)
+):
+    return RedeemItemService.get_item_history_admin(db, item_id)
 
 
 @router.put("/{item_id}")

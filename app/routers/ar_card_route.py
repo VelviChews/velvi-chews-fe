@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.schemas.card_schema import CreateCardRequest, CardResponse
+from app.schemas.card_schema import CreateCardRequest, CardResponse, AdminScanHistoryResponse
 from app.services import card_service
 from app.utils.role_check import admin_required
 from typing import List
@@ -28,6 +28,16 @@ def list_cards(
 ):
     """Admin only: List all AR cards."""
     return card_service.get_all_cards(db)
+
+
+@router.get("/{card_code}/history", response_model=List[AdminScanHistoryResponse])
+def get_card_history_admin_api(
+    card_code: str,
+    db: Session = Depends(get_db),
+    _: None = Depends(admin_required),
+):
+    """Admin only: Get scan history for a specific AR card."""
+    return card_service.get_card_history_admin(db, card_code)
 
 
 @router.get("/{card_code}/qr")

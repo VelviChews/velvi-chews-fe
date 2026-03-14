@@ -13,4 +13,5 @@ class RedeemHistory(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     item = relationship("RedeemItem", back_populates="redeems")
+    user = relationship("User")
 

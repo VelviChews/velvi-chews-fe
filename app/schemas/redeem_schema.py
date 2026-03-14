@@ -39,3 +39,24 @@ class RedeemHistoryResponse(BaseModel):
 
     class Config:
         orm_mode = True
+        from_attributes = True
+
+class UserBasicInfo(BaseModel):
+    id: int
+    name: str
+    email: str
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
+
+class AdminRedeemHistoryResponse(BaseModel):
+    id: int
+    user_id: int
+    points_spent: int
+    created_at: datetime
+    user: UserBasicInfo
+
+    class Config:
+        orm_mode = True
+        from_attributes = True

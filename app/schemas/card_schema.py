@@ -29,3 +29,23 @@ class ScanResponse(BaseModel):
     points_received: int
     total_points: int
     label: str
+
+class UserBasicInfo(BaseModel):
+    id: int
+    name: str
+    email: str
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
+
+class AdminScanHistoryResponse(BaseModel):
+    id: int
+    user_id: int
+    points_received: int
+    created_at: datetime
+    user: UserBasicInfo
+
+    class Config:
+        orm_mode = True
+        from_attributes = True

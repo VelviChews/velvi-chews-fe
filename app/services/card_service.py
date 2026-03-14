@@ -52,6 +52,17 @@ def get_card_by_code(db: Session, card_code: str) -> ARCard:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="QR Card tidak ditemukan")
     return card
 
+def get_card_history_admin(db: Session, card_code: str):
+    from sqlalchemy.orm import joinedload
+    from app.models.scan_history import ScanHistory
+    card = get_card_by_code(db, card_code)
+    return (
+        db.query(ScanHistory)
+        .options(joinedload(ScanHistory.user))
+        .filter(ScanHistory.card_id == card.id)
+        .order_by(ScanHistory.created_at.desc())
+        .all()
+    )
 
 def delete_card(db: Session, card_code: str):
     card = get_card_by_code(db, card_code)
