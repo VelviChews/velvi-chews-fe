@@ -4,11 +4,12 @@ import Logo from '../assets/Logo.png';
 import WaveTop from '../assets/upperwave.png'; 
 import WaveBottom from '../assets/bottomwave.png'; 
 
-const LoginPage = () => {
+const LoginPage = ({ onLogin }) => {
   const navigate = useNavigate();
+  const [username, setUsername] = React.useState('');
 
   const handleLogin = () => {
-    // nanti bisa ditambah validasi login kalau sudah punya backend
+    if (onLogin) onLogin(username || 'anonymous');
     navigate('/home');
   };
 
@@ -34,6 +35,8 @@ const LoginPage = () => {
           <input
             type="text"
             placeholder="Input your username here"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             className="mb-4 w-full rounded-xl border-0 bg-[#FCAFC1]/50 p-4 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-[#FF89AC]"
           />
           
