@@ -11,7 +11,9 @@ import {
   Bell,
   Search,
   ChevronDown,
-  LogOut
+  LogOut,
+  Menu,
+  X
 } from "lucide-react";
 import StatCard from "../components/admin/StatCard";
 import UserLoginTable from "../components/admin/UserLoginTable";
@@ -46,6 +48,7 @@ const AdminDashboardPage = () => {
   // UI State
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -91,7 +94,6 @@ const AdminDashboardPage = () => {
   };
 
   const handleGenerateReport = () => {
-    // Basic CSV Generation
     let csvContent = "data:text/csv;charset=utf-8,";
     csvContent += "Report Date," + new Date().toLocaleDateString() + "\\n\\n";
     csvContent += "Metric,Value\\n";
@@ -119,14 +121,27 @@ const AdminDashboardPage = () => {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-50 w-full overflow-hidden text-left">
+    <div className="flex h-screen bg-gray-50 w-full overflow-hidden text-left relative">
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r flex flex-col">
-        <div className="p-4 border-b flex items-center gap-2">
-          <div className="bg-indigo-600 text-white p-1.5 rounded-lg">
-            <Activity className="w-5 h-5" />
+      <aside className={`fixed md:static inset-y-0 left-0 w-64 bg-white border-r flex flex-col z-50 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+        <div className="p-4 border-b flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="bg-indigo-600 text-white p-1.5 rounded-lg">
+              <Activity className="w-5 h-5" />
+            </div>
+            <span className="font-bold text-xl text-gray-800">Activity Monitor</span>
           </div>
-          <span className="font-bold text-xl text-gray-800">Activity Monitor</span>
+          <button className="md:hidden text-gray-500 hover:text-gray-700" onClick={() => setIsSidebarOpen(false)}>
+            <X className="w-6 h-6" />
+          </button>
         </div>
         <nav className="flex-1 overflow-y-auto p-4 space-y-1">
           {navItems.map((item) => {
@@ -135,7 +150,10 @@ const AdminDashboardPage = () => {
             return (
               <button
                 key={item.name}
-                onClick={() => setActiveTab(item.name)}
+                onClick={() => {
+                  setActiveTab(item.name);
+                  setIsSidebarOpen(false); // Close sidebar on mobile after clicking
+                }}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
                   isActive ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-100'
                 }`}
@@ -153,20 +171,28 @@ const AdminDashboardPage = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="flex-1 flex flex-col overflow-hidden w-full">
         {/* Header */}
-        <header className="bg-white border-b p-4 flex justify-between items-center">
-          <div className="flex items-center bg-gray-100 rounded-md px-3 py-1.5 w-96">
-            <Search className="w-5 h-5 text-gray-400" />
-            <input 
-              type="text" 
-              placeholder="Search Users, Activity, Scans..." 
-              value={globalSearch}
-              onChange={(e) => setGlobalSearch(e.target.value)}
-              className="bg-transparent border-none outline-none ml-2 w-full text-sm"
-            />
+        <header className="bg-white border-b p-4 flex justify-between items-center flex-wrap gap-4">
+          <div className="flex items-center gap-4 flex-1">
+            <button 
+              className="md:hidden text-gray-500 hover:text-gray-700"
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+            <div className="flex items-center bg-gray-100 rounded-md px-3 py-1.5 w-full max-w-sm">
+              <Search className="w-5 h-5 text-gray-400 flex-shrink-0" />
+              <input 
+                type="text" 
+                placeholder="Search..." 
+                value={globalSearch}
+                onChange={(e) => setGlobalSearch(e.target.value)}
+                className="bg-transparent border-none outline-none ml-2 w-full text-sm min-w-0"
+              />
+            </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <button className="relative p-2 text-gray-400 hover:text-gray-600" onClick={fetchData}>
               <Bell className="w-5 h-5" />
               <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
@@ -176,12 +202,11 @@ const AdminDashboardPage = () => {
                 className="flex items-center gap-2 cursor-pointer p-1 rounded-md hover:bg-gray-50"
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
               >
-                <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold">
+                <div className="w-8 h-8 bg-indigo-100 rounded-full flex flex-shrink-0 items-center justify-center text-indigo-600 font-bold">
                   A
                 </div>
-                <div className="text-sm">
-                  <p className="font-semibold text-gray-800">Admin User</p>
-                  <p className="text-xs text-gray-500">Admin</p>
+                <div className="hidden sm:block text-sm">
+                  <p className="font-semibold text-gray-800">Admin</p>
                 </div>
                 <ChevronDown className="w-4 h-4 text-gray-400" />
               </div>
@@ -201,7 +226,7 @@ const AdminDashboardPage = () => {
               )}
             </div>
             <button 
-              className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
+              className="hidden sm:block bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm whitespace-nowrap"
               onClick={handleGenerateReport}
             >
               Generate Report
@@ -210,10 +235,10 @@ const AdminDashboardPage = () => {
         </header>
 
         {/* Dashboard Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="flex items-center gap-4 mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">{activeTab === 'Dashboard' ? 'User Activity Dashboard' : activeTab}</h1>
-            <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-6">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{activeTab === 'Dashboard' ? 'User Activity Dashboard' : activeTab}</h1>
+            <span className="text-xs sm:text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full w-fit">
               {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
             </span>
           </div>
@@ -226,7 +251,7 @@ const AdminDashboardPage = () => {
              <>
                 {/* Stats Row - Only show on Dashboard or Activity */}
                 {(activeTab === 'Dashboard' || activeTab === 'Activity') && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6 animate-fade-in">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6 animate-fade-in">
                     <StatCard title="Total Registered Users" value={stats.total_users.toLocaleString()} percentage="1.2" isPositive={true} sparklineData={[20,30,25,40,60,50,70]} />
                     <StatCard title="Total Logged-in Users" value={stats.active_users.toLocaleString()} percentage="3.5" isPositive={true} sparklineData={[10,20,30,40,50,45,60]} />
                     <StatCard title="Total QR Code Scans" value={stats.total_qr_scans.toLocaleString()} percentage="2.8" isPositive={true} sparklineData={[30,40,35,50,60,80,90]} />
@@ -241,7 +266,7 @@ const AdminDashboardPage = () => {
                   <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 animate-fade-in">
                     <div className="space-y-6">
                       <UserLoginTable data={logins} search={loginSearch} setSearch={setLoginSearch} />
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <DashboardCharts data={chartData} filter={chartPeriod} setFilter={setChartPeriod} />
                         <LiveActiveUsersChart data={chartData} totalActive={stats.active_users} />
                       </div>
