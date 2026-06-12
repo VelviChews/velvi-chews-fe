@@ -66,10 +66,9 @@ def get_recent_qr_scans(skip: int = 0, limit: int = 20, search: str = "", date: 
         query = query.filter(User.name.ilike(f"%{search}%") | ARCard.card_code.ilike(f"%{search}%"))
     if date:
         try:
+            from sqlalchemy import cast, Date
             target_date = datetime.strptime(date, "%Y-%m-%d").date()
-            start_dt = datetime.combine(target_date, datetime.min.time())
-            end_dt = start_dt + timedelta(days=1)
-            query = query.filter(ScanHistory.created_at >= start_dt, ScanHistory.created_at < end_dt)
+            query = query.filter(cast(ScanHistory.created_at, Date) == target_date)
         except ValueError:
             pass # Ignore invalid date format
             
