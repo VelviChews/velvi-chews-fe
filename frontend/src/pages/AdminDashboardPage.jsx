@@ -51,10 +51,16 @@ const AdminDashboardPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const fetchData = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
     setIsLoading(true);
     try {
       const headers = {
-         'Authorization': `Bearer ${localStorage.getItem('token')}`
+         'Authorization': `Bearer ${token}`
       };
 
       const searchParamLogins = globalSearch || loginSearch;
@@ -66,6 +72,13 @@ const AdminDashboardPage = () => {
         fetch(`${API_URL}/admin/dashboard/qr-scans?search=${searchParamQr}&date=${qrDateFilter}`, { headers }),
         fetch(`${API_URL}/admin/dashboard/chart-data?period=${chartPeriod.toLowerCase()}`, { headers })
       ]);
+
+      // If unauthorized, redirect to login
+      if (statsRes.status === 401 || statsRes.status === 403) {
+        localStorage.removeItem('token');
+        navigate('/login');
+        return;
+      }
 
       if (statsRes.ok) setStats(await statsRes.json());
       if (loginsRes.ok) {
