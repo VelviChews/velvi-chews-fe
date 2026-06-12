@@ -63,7 +63,7 @@ def get_recent_logins(skip: int = 0, limit: int = 20, search: str = "", db: Sess
 def get_recent_qr_scans(skip: int = 0, limit: int = 20, search: str = "", date: str = "", db: Session = Depends(get_db)):
     query = db.query(ScanHistory, User, ARCard).join(User, ScanHistory.user_id == User.id).join(ARCard, ScanHistory.card_id == ARCard.id)
     if search:
-        query = query.filter(User.name.ilike(f"%{search}%") | ARCard.code.ilike(f"%{search}%"))
+        query = query.filter(User.name.ilike(f"%{search}%") | ARCard.card_code.ilike(f"%{search}%"))
     if date:
         try:
             target_date = datetime.strptime(date, "%Y-%m-%d").date()
@@ -81,7 +81,7 @@ def get_recent_qr_scans(skip: int = 0, limit: int = 20, search: str = "", date: 
         result.append({
             "id": scan_hist.id,
             "user_name": user.name,
-            "qr_code_scanned": card.code,
+            "qr_code_scanned": card.card_code,
             "scan_date": scan_hist.created_at,
             "status": "Success"
         })
