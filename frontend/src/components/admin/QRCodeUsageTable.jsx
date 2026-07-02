@@ -38,7 +38,7 @@ const QRCodeUsageTable = ({ data = [], dateFilter, setDateFilter }) => {
               data.map((row, index) => (
                 <tr key={index} className="bg-white border-b hover:bg-gray-50">
                   <td className="px-6 py-4 font-medium text-gray-900">{row.user_name}</td>
-                  <td className="px-6 py-4 text-gray-500">{row.qr_code_scanned}</td>
+                  <td className="px-6 py-4 text-gray-500">{row.qr_code_label || row.qr_code_scanned}</td>
                   <td className="px-6 py-4 text-gray-500">{new Date(row.scan_date).toLocaleString()}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.status === 'Success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>

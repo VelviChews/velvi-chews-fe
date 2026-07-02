@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from sqlalchemy import func, distinct
-from datetime import datetime, date, timedelta
+from datetime import date, datetime, timedelta
+
 from app.database import get_db
-from app.models.user import User
+from app.models.ar_card import ARCard
 from app.models.login_history import LoginHistory
 from app.models.scan_history import ScanHistory
-from app.models.ar_card import ARCard
+from app.models.user import User
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import distinct, func
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/admin/dashboard", tags=["Admin Dashboard"])
 
@@ -14,17 +15,19 @@ router = APIRouter(prefix="/admin/dashboard", tags=["Admin Dashboard"])
 def get_dashboard_stats(db: Session = Depends(get_db)):
     total_users = db.query(func.count(User.id)).scalar()
     
-    # In some designs, 'Total Logged-in Users' might refer to currently active sessions.
-    # Since we only track login events, we'll count unique users who logged in within the last 24 hours.
     one_day_ago = datetime.utcnow() - timedelta(days=1)
     active_users = db.query(func.count(distinct(LoginHistory.user_id))).filter(LoginHistory.created_at >= one_day_ago).scalar()
     
     total_qr_scans = db.query(func.count(ScanHistory.id)).scalar()
     unique_qr_scanners = db.query(func.count(distinct(ScanHistory.user_id))).scalar()
     
-    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    todays_logins = db.query(func.count(LoginHistory.id)).filter(LoginHistory.created_at >= today_start).scalar()
-    todays_qr_scans = db.query(func.count(ScanHistory.id)).filter(ScanHistory.created_at >= today_start).scalar()
+    now_utc = datetime.utcnow()
+    now_jakarta = now_utc + timedelta(hours=7)
+    today_start_jakarta = now_jakarta.replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start_utc = today_start_jakarta - timedelta(hours=7)
+
+    todays_logins = db.query(func.count(LoginHistory.id)).filter(LoginHistory.created_at >= today_start_utc).scalar()
+    todays_qr_scans = db.query(func.count(ScanHistory.id)).filter(ScanHistory.created_at >= today_start_utc).scalar()
     
     return {
         "total_users": total_users,
@@ -36,13 +39,16 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
     }
 
 @router.get("/logins")
-def get_recent_logins(skip: int = 0, limit: int = 20, search: str = "", db: Session = Depends(get_db)):
+def get_recent_logins(skip: int = 0, limit: int = 20, search: str = "", all: bool = False, db: Session = Depends(get_db)):
     query = db.query(LoginHistory, User).join(User, LoginHistory.user_id == User.id)
     if search:
         query = query.filter(User.name.ilike(f"%{search}%") | User.email.ilike(f"%{search}%"))
     
     total = query.count()
-    records = query.order_by(LoginHistory.created_at.desc()).offset(skip).limit(limit).all()
+    if all:
+        records = query.order_by(LoginHistory.created_at.desc()).all()
+    else:
+        records = query.order_by(LoginHistory.created_at.desc()).offset(skip).limit(limit).all()
     
     result = []
     for login_hist, user in records:
@@ -51,7 +57,7 @@ def get_recent_logins(skip: int = 0, limit: int = 20, search: str = "", db: Sess
             "user_name": user.name,
             "email_address": user.email,
             "last_login_date": login_hist.created_at,
-            "status": "Active" # Assuming active if logged in
+            "status": "Active"
         })
         
     return {
@@ -60,20 +66,23 @@ def get_recent_logins(skip: int = 0, limit: int = 20, search: str = "", db: Sess
     }
 
 @router.get("/qr-scans")
-def get_recent_qr_scans(skip: int = 0, limit: int = 20, search: str = "", date: str = "", db: Session = Depends(get_db)):
+def get_recent_qr_scans(skip: int = 0, limit: int = 20, search: str = "", date: str = "", all: bool = False, db: Session = Depends(get_db)):
     query = db.query(ScanHistory, User, ARCard).join(User, ScanHistory.user_id == User.id).join(ARCard, ScanHistory.card_id == ARCard.id)
     if search:
-        query = query.filter(User.name.ilike(f"%{search}%") | ARCard.card_code.ilike(f"%{search}%"))
+        query = query.filter(User.name.ilike(f"%{search}%") | ARCard.card_code.ilike(f"%{search}%") | ARCard.label.ilike(f"%{search}%"))
     if date:
         try:
-            from sqlalchemy import cast, Date
+            from sqlalchemy import Date, cast
             target_date = datetime.strptime(date, "%Y-%m-%d").date()
             query = query.filter(cast(ScanHistory.created_at, Date) == target_date)
         except ValueError:
-            pass # Ignore invalid date format
+            pass
             
     total = query.count()
-    records = query.order_by(ScanHistory.created_at.desc()).offset(skip).limit(limit).all()
+    if all:
+        records = query.order_by(ScanHistory.created_at.desc()).all()
+    else:
+        records = query.order_by(ScanHistory.created_at.desc()).offset(skip).limit(limit).all()
     
     result = []
     for scan_hist, user, card in records:
@@ -81,6 +90,7 @@ def get_recent_qr_scans(skip: int = 0, limit: int = 20, search: str = "", date: 
             "id": scan_hist.id,
             "user_name": user.name,
             "qr_code_scanned": card.card_code,
+            "qr_code_label": card.label,
             "scan_date": scan_hist.created_at,
             "status": "Success"
         })
@@ -113,7 +123,6 @@ def get_chart_data(period: str = "daily", db: Session = Depends(get_db)):
             })
     elif period == "weekly":
         for i in range(3, -1, -1):
-            # start of the week (Monday)
             start_dt = datetime.combine(today - timedelta(days=today.weekday() + 7*i), datetime.min.time())
             end_dt = start_dt + timedelta(days=7)
             
@@ -129,7 +138,6 @@ def get_chart_data(period: str = "daily", db: Session = Depends(get_db)):
             })
     elif period == "monthly":
         for i in range(5, -1, -1):
-            # calculate month start and end
             month = today.month - i
             year = today.year
             if month <= 0:
