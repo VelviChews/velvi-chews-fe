@@ -24,12 +24,17 @@ import { LiveActiveUsersChart } from '../components/admin/LiveActiveUsersChart';
 import QRCodeUsageTable from '../components/admin/QRCodeUsageTable';
 import StatCard from '../components/admin/StatCard';
 import UserLoginTable from '../components/admin/UserLoginTable';
+import Pagination from '../components/Pagination';
 
 const API_URL =
 	import.meta.env.VITE_API_URL ||
 	'http://127.0.0.1:8000';
-
+	
 const AdminDashboardPage = () => {
+	const [qrPage, setQrPage] = useState(1);
+	const [qrTotal, setQrTotal] = useState(0);
+	const PAGE_SIZE = 20;
+
 	const navigate = useNavigate();
 	const [stats, setStats] = useState({
 		total_users: 0,
@@ -109,8 +114,9 @@ const AdminDashboardPage = () => {
 					`${API_URL}/admin/dashboard/logins?search=${searchParamLogins}&t=${timestamp}`,
 					{ headers },
 				),
+				// pasang limit dan skip untuk pagination
 				fetch(
-					`${API_URL}/admin/dashboard/qr-scans?search=${searchParamQr}&date=${qrDateFilter}&t=${timestamp}`,
+					`${API_URL}/admin/dashboard/qr-scans?search=${searchParamQr}&date=${qrDateFilter}&skip=${(qrPage - 1) * PAGE_SIZE}&limit=${PAGE_SIZE}&t=${timestamp}`,
 					{ headers },
 				),
 				fetch(
@@ -140,11 +146,9 @@ const AdminDashboardPage = () => {
 				);
 			}
 			if (qrScansRes.ok) {
-				const scansData =
-					await qrScansRes.json();
-				setQrScans(
-					scansData.data || [],
-				);
+				const scansData = await qrScansRes.json();
+				setQrScans(scansData.data || [],);
+				setQrTotal(scansData.total || 0);
 			}
 			if (chartRes.ok)
 				setChartData(
@@ -167,6 +171,14 @@ const AdminDashboardPage = () => {
 		loginSearch,
 		qrDateFilter,
 		chartPeriod,
+		qrPage
+	]);
+
+	useEffect(() => {
+		setQrPage(1);
+	}, [
+		globalSearch, 
+		qrDateFilter
 	]);
 
 	const handleLogout = () => {
@@ -612,6 +624,7 @@ const AdminDashboardPage = () => {
 												setQrDateFilter
 											}
 										/>
+										<Pagination page={qrPage} setPage={setQrPage} total={qrTotal} pageSize={PAGE_SIZE} />
 									</div>
 								</div>
 							)}
@@ -660,6 +673,7 @@ const AdminDashboardPage = () => {
 											setQrDateFilter
 										}
 									/>
+									<Pagination page={qrPage} setPage={setQrPage} total={qrTotal} pageSize={PAGE_SIZE} />
 								</div>
 							)}
 
